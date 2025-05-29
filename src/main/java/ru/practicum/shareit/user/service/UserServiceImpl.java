@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.validator.EmailValidator;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -18,12 +19,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto createUser(UserDto userDto) {
+        validateUserData(userDto, true);
+
         if (emails.contains(userDto.getEmail())) {
-            throw new RuntimeException("Email уже существует");
+            throw new IllegalArgumentException("Email уже существует");
         }
 
         User user = UserMapper.toUser(userDto);
         user.setId(idGenerator.getAndDecrement());
+        user.setEmail(user.getEmail().trim());
+
         users.put(user.getId(), user);
         emails.add(user.getEmail());
 
@@ -34,21 +39,28 @@ public class UserServiceImpl implements UserService {
     public UserDto updateUser(Long userId, UserDto userDto) {
         User existingUser = users.get(userId);
         if (existingUser == null) {
-            throw new RuntimeException("Пользователь не найден");
+            throw new IllegalArgumentException("Пользователь не найден");
         }
 
-        if (userDto.getEmail() != null && !userDto.getEmail().equals(existingUser.getEmail())) {
-            if (emails.contains(userDto.getEmail())) {
-                throw new RuntimeException("Email уже существует");
-            }
+        if (userDto.getEmail() != null) {
+            EmailValidator.validateEmail(userDto.getEmail());
+            String normalizedEmail = userDto.getEmail().trim();
 
-            emails.remove(existingUser.getEmail());
-            emails.add(userDto.getEmail());
-            existingUser.setEmail(userDto.getEmail());
+            if (!normalizedEmail.equals(existingUser.getEmail())) {
+                if (emails.contains(normalizedEmail)) {
+                    throw new IllegalArgumentException("Пользователь с таким email уже существует");
+                }
+                emails.remove(existingUser.getEmail());
+                emails.add(normalizedEmail);
+                existingUser.setEmail(normalizedEmail);
+            }
         }
 
         if (userDto.getName() != null) {
-            existingUser.setName(userDto.getName());
+            if (userDto.getName().trim().isEmpty()) {
+                throw new IllegalArgumentException("Имя не может быть пустым");
+            }
+            existingUser.setName(userDto.getName().trim());
         }
 
         return UserMapper.toUserDto(existingUser);
@@ -58,7 +70,7 @@ public class UserServiceImpl implements UserService {
     public UserDto getUserById(Long userId) {
         User user = users.get(userId);
         if (user == null) {
-            throw new RuntimeException("Пользователь не найден");
+            throw new IllegalArgumentException("Пользователь не найден");
         }
 
         return UserMapper.toUserDto(user);
@@ -76,6 +88,25 @@ public class UserServiceImpl implements UserService {
         User user = users.remove(userId);
         if (user != null) {
             emails.remove(user.getEmail());
+        }
+    }
+
+    private void validateUserData(UserDto userDto, boolean isCreation) {
+        if (userDto == null) {
+            throw new IllegalArgumentException("Пользователь не может быть null");
+        }
+
+        if (isCreation || userDto.getName() != null) {
+            if (userDto.getName() == null || userDto.getName().trim().isEmpty()) {
+                throw new IllegalArgumentException("Имя не может быть пустым или null");
+            }
+        }
+
+        if (isCreation || userDto.getEmail() != null) {
+            if (userDto.getEmail() == null || userDto.getEmail().trim().isEmpty()) {
+                throw new IllegalArgumentException("Email не может быть пустым или null");
+            }
+            EmailValidator.validateEmail(userDto.getEmail());
         }
     }
 }
