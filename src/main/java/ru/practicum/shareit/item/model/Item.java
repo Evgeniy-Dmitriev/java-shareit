@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 @Entity
@@ -26,10 +25,7 @@ public class Item {
     @Column(name = "is_available", nullable = false)
     private Boolean available;
 
-    @Column(name = "owner_id", nullable = false)
-    private User owner;
-
     @ManyToOne
-    @JoinColumn(name = "request_id")
-    private ItemRequest request;
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
 }
