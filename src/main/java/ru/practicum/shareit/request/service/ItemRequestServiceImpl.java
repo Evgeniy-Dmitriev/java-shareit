@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.RequestNotFoundException;
 import ru.practicum.shareit.exception.UserNotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.mapper.ItemMapper;
+import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
@@ -15,6 +19,8 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +28,7 @@ import java.util.List;
 public class ItemRequestServiceImpl implements ItemRequestService {
     private final ItemRequestRepository itemRequestRepository;
     private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
 
     @Override
     @Transactional
@@ -30,7 +37,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
 
         if (itemRequestDto.getDescription() == null || itemRequestDto.getDescription().trim().isEmpty()) {
-            throw new IllegalArgumentException("Описание запроса не может быть пустым");
+            throw new ValidationException("Описание запроса не может быть пустым");
         }
 
         ItemRequest request = ItemRequestMapper.toItemRequest(itemRequestDto, requester);
@@ -43,10 +50,25 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public List<ItemRequestDto> getUserRequests(Long userId) {
-        return itemRequestRepository.findByRequesterId(userId, Sort.by("created").descending())
+        userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
+
+        List<ItemRequest> requests = itemRequestRepository
+                .findByRequesterId(userId, Sort.by("created").descending());
+
+        List<Long> requestIds = requests.stream()
+                .map(ItemRequest::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, List<ItemDto>> itemsByRequestId = itemRepository.findByRequestIdIn(requestIds)
                 .stream()
-                .map(ItemRequestMapper::toItemRequestDto)
-                .toList();
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.groupingBy(ItemDto::getRequestId));
+
+        return requests.stream()
+                .map(request -> ItemRequestMapper.toItemRequestDto(request,
+                        itemsByRequestId.getOrDefault(request.getId(), List.of())))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -54,11 +76,22 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
 
-        return itemRequestRepository.findByRequesterIdNot(userId,
-                        Sort.by("created").descending())
+        List<ItemRequest> requests = itemRequestRepository.findByRequesterIdNot(userId,
+                Sort.by("created").descending());
+
+        List<Long> requestIds = requests.stream()
+                .map(ItemRequest::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, List<ItemDto>> itemsByRequestId = itemRepository.findByRequestIdIn(requestIds)
                 .stream()
-                .map(ItemRequestMapper::toItemRequestDto)
-                .toList();
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.groupingBy(ItemDto::getRequestId));
+
+        return requests.stream()
+                .map(request -> ItemRequestMapper.toItemRequestDto(request,
+                        itemsByRequestId.getOrDefault(request.getId(), List.of())))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -66,12 +99,16 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         ItemRequest request = itemRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RequestNotFoundException("Запрос не найден"));
 
-        // Проверяем, что текущий пользователь либо создатель запроса, либо тот, кто отвечает на него
         if (!request.getRequester().getId().equals(userId)) {
             userRepository.findById(userId)
                     .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
         }
 
-        return ItemRequestMapper.toItemRequestDto(request);
+        List<ItemDto> items = itemRepository.findByRequestId(requestId)
+                .stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
+
+        return ItemRequestMapper.toItemRequestDto(request, items);
     }
 }
