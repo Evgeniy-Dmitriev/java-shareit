@@ -28,14 +28,12 @@ public class BookingCreateDtoTest {
                   "start": "2024-01-01T12:00:00",
                   "end": "2024-01-02T12:00:00",
                   "itemId": 1
-                }
-                """;
+                  }
+                  """;
 
-        // Сериализация
         assertThat(jsonJacksonTester.write(dto))
                 .isEqualToJson(expectedJson);
 
-        // Десериализация
         assertThat(jsonJacksonTester.parse(expectedJson))
                 .isEqualTo(dto);
     }

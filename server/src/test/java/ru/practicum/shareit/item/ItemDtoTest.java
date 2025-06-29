@@ -20,13 +20,13 @@ public class ItemDtoTest {
         ItemDto dto = new ItemDto(1L, "Name", "Description", true, null);
 
         String expectedJson = """
-              {
-              "id": 1,
-              "name": "Name",
-              "description": "Description",
-              "available": true
-            }
-            """;
+                {
+                "id": 1,
+                "name": "Name",
+                "description": "Description",
+                "available": true
+                }
+                """;
 
         assertThat(jsonJacksonTester.write(dto))
                 .isEqualToJson(expectedJson);

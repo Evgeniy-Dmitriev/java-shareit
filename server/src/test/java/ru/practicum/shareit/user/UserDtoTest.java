@@ -24,8 +24,8 @@ public class UserDtoTest {
               "id": 1,
               "name": "John",
               "email": "john@example.com"
-            }
-            """;
+              }
+              """;
 
         assertThat(jsonJacksonTester.write(dto))
                 .isEqualToJson(expectedJson);
