@@ -92,6 +92,10 @@ public class ItemServiceImpl implements ItemService {
             existingItem.setAvailable(itemDto.getAvailable());
         }
 
+        if (itemDto.getRequestId() != null) {
+            existingItem.setRequestId(itemDto.getRequestId());
+        }
+
         Item updatedItem = itemRepository.save(existingItem);
         return ItemMapper.toItemDto(updatedItem);
     }
@@ -160,7 +164,6 @@ public class ItemServiceImpl implements ItemService {
             return new ArrayList<>();
         }
 
-        String searchText = text.toLowerCase();
         return itemRepository.search(text).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());

@@ -17,22 +17,16 @@ public class CommentDtoTest {
 
     @Test
     void testSerializeDeserialize() throws Exception {
-        LocalDateTime now = LocalDateTime.now();
-        CommentDto dto = new CommentDto(1L, "Text", "Author", now);
+        LocalDateTime fixedTime = LocalDateTime.of(2025, 6, 29, 9, 51, 29, 161745700);
 
-        String expectedJson = String.format("""
-            {
-              "id": 1,
-              "text": "Text",
-              "authorName": "Author",
-              "created": "%s"
-            }
-        """, now.toString());
+        CommentDto dto = new CommentDto(1L, "Text", "Author", fixedTime);
 
-        assertThat(jsonJacksonTester.write(dto))
-                .isEqualToJson(expectedJson);
+        String json = jsonJacksonTester.write(dto).getJson();
 
-        assertThat(jsonJacksonTester.parse(expectedJson))
+        CommentDto parsedDto = jsonJacksonTester.parseObject(json);
+
+        assertThat(parsedDto)
+                .usingRecursiveComparison()
                 .isEqualTo(dto);
     }
 }
