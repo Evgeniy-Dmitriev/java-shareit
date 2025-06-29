@@ -12,6 +12,7 @@
     <version>0.0.1-SNAPSHOT</version>
 
     <name>ShareIt Server</name>
+    <description>ShareIt Server Application</description>
 
     <dependencies>
         <dependency>
