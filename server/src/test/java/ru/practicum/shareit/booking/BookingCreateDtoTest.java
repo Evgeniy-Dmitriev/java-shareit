@@ -24,7 +24,7 @@ public class BookingCreateDtoTest {
         BookingCreateDto dto = new BookingCreateDto(start, end, 1L);
 
         String expectedJson = """
-                {
+                  {
                   "start": "2024-01-01T12:00:00",
                   "end": "2024-01-02T12:00:00",
                   "itemId": 1
