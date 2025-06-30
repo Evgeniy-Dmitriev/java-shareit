@@ -19,13 +19,7 @@ public class UserDtoTest {
     void serializeDeserializeTest() throws Exception {
         UserDto dto = new UserDto(1L, "John", "john@example.com");
 
-        String expectedJson = """
-              {
-              "id": 1,
-              "name": "John",
-              "email": "john@example.com"
-              }
-              """;
+        String expectedJson = "{\"id\": 1, \"name\": \"John\", \"email\": \"john@example.com\"}";
 
         assertThat(jsonJacksonTester.write(dto))
                 .isEqualToJson(expectedJson);

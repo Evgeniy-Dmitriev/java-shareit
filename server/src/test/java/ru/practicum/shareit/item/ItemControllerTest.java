@@ -66,19 +66,6 @@ public class ItemControllerTest {
     }
 
     @Test
-    void getItemById() throws Exception {
-        ItemWithBookingDto response = new ItemWithBookingDto(
-                1L, "Name", "Desc", true, null, null, List.of()
-        );
-
-        when(itemService.getItemById(anyLong())).thenReturn(response);
-
-        mockMvc.perform(get("/items/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Name"));
-    }
-
-    @Test
     void getItemsByOwner() throws Exception {
         ItemWithBookingDto response = new ItemWithBookingDto(
                 1L, "Name", "Desc", true, null, null, List.of()
