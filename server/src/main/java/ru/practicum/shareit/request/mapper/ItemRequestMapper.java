@@ -35,6 +35,6 @@ public class ItemRequestMapper {
                 itemRequest.getId(),
                 itemRequest.getDescription(),
                 itemRequest.getCreated(),
-                items != null ? items : Collections.emptyList());
+                items);
     }
 }

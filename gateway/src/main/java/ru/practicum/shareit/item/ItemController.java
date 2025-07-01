@@ -33,6 +33,7 @@ public class ItemController {
     public ResponseEntity<Object> updateItem(@RequestHeader("X-Sharer-User-Id") Long userId,
                                              @PathVariable Long itemId,
                                              @RequestBody ItemDto itemDto) {
+
         return itemClient.updateItem(userId, itemId, itemDto);
     }
 
