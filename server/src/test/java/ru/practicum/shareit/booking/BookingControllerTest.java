@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static ru.practicum.shareit.util.Constants.USER_ID_HEADER;
 
 @WebMvcTest(BookingController.class)
 class BookingControllerTest {
@@ -39,8 +40,6 @@ class BookingControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    private static final String USER_ID_HEADER = "X-Sharer-User-Id";
 
     @Test
     void createBooking_ValidRequest_ShouldReturnCreatedBooking() throws Exception {

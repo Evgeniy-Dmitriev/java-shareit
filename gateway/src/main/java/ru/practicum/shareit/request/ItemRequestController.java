@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
+import static ru.practicum.shareit.util.Constants.USER_ID_HEADER;
+
 @RestController
 @RequestMapping(path = "/requests")
 @RequiredArgsConstructor
@@ -15,7 +17,7 @@ public class ItemRequestController {
     private final ItemRequestClient itemRequestClient;
 
     @PostMapping
-    public ResponseEntity<Object> createItemRequest(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ResponseEntity<Object> createItemRequest(@RequestHeader(USER_ID_HEADER) Long userId,
                                                     @RequestBody @Valid ItemRequestDto itemRequestDto) {
         if (itemRequestDto.getDescription() == null || itemRequestDto.getDescription().trim().isEmpty()) {
             throw new ValidationException("Описание запроса не может быть пустым");
@@ -24,12 +26,12 @@ public class ItemRequestController {
     }
 
     @GetMapping
-    public ResponseEntity<Object> getUserRequests(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public ResponseEntity<Object> getUserRequests(@RequestHeader(USER_ID_HEADER) Long userId) {
         return itemRequestClient.getUserRequests(userId);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Object> getAllRequests(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ResponseEntity<Object> getAllRequests(@RequestHeader(USER_ID_HEADER) Long userId,
                                                  @RequestParam(defaultValue = "0") int from,
                                                  @RequestParam(defaultValue = "20") int size) {
         if (from < 0) {
@@ -42,7 +44,7 @@ public class ItemRequestController {
     }
 
     @GetMapping("/{requestId}")
-    public ResponseEntity<Object> getRequestById(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ResponseEntity<Object> getRequestById(@RequestHeader(USER_ID_HEADER) Long userId,
                                                  @PathVariable Long requestId) {
         return itemRequestClient.getRequestById(userId, requestId);
     }

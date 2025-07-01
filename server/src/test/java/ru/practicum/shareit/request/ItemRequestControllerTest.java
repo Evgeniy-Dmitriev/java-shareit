@@ -17,6 +17,7 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static ru.practicum.shareit.util.Constants.USER_ID_HEADER;
 
 @WebMvcTest(ItemRequestController.class)
 public class ItemRequestControllerTest {
@@ -46,7 +47,7 @@ public class ItemRequestControllerTest {
                 .thenReturn(itemRequestDto);
 
         mockMvc.perform(post("/requests")
-                        .header("X-Sharer-User-Id", 1)
+                        .header(USER_ID_HEADER, 1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(itemRequestDto)))
                 .andExpect(status().isOk())
@@ -61,7 +62,7 @@ public class ItemRequestControllerTest {
         when(itemRequestService.getUserRequests(anyLong())).thenReturn(List.of(itemRequestDto));
 
         mockMvc.perform(get("/requests")
-                        .header("X-Sharer-User-Id", 1))
+                        .header(USER_ID_HEADER, 1))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").value(1))
@@ -76,7 +77,7 @@ public class ItemRequestControllerTest {
                 .thenReturn(List.of(itemRequestDto));
 
         mockMvc.perform(get("/requests/all")
-                        .header("X-Sharer-User-Id", 1))
+                        .header(USER_ID_HEADER, 1))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").value(1))
@@ -91,7 +92,7 @@ public class ItemRequestControllerTest {
                 .thenReturn(itemRequestDto);
 
         mockMvc.perform(get("/requests/1")
-                        .header("X-Sharer-User-Id", 1))
+                        .header(USER_ID_HEADER, 1))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.description").value("Test request"));

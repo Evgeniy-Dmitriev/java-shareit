@@ -8,6 +8,8 @@ import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.comment.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
+import static ru.practicum.shareit.util.Constants.USER_ID_HEADER;
+
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
@@ -15,7 +17,7 @@ public class ItemController {
     private final ItemClient itemClient;
 
     @PostMapping
-    public ResponseEntity<Object> createItem(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ResponseEntity<Object> createItem(@RequestHeader(USER_ID_HEADER) Long userId,
                                              @RequestBody @Valid ItemDto itemDto) {
         if (itemDto.getName() == null || itemDto.getName().trim().isEmpty()) {
             throw new ValidationException("Название предмета не может быть пустым");
@@ -30,7 +32,7 @@ public class ItemController {
     }
 
     @PatchMapping("/{itemId}")
-    public ResponseEntity<Object> updateItem(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ResponseEntity<Object> updateItem(@RequestHeader(USER_ID_HEADER) Long userId,
                                              @PathVariable Long itemId,
                                              @RequestBody ItemDto itemDto) {
 
@@ -39,12 +41,12 @@ public class ItemController {
 
     @GetMapping("/{itemId}")
     public ResponseEntity<Object> getItem(@PathVariable Long itemId,
-                                          @RequestHeader("X-Sharer-User-Id") Long userId) {
+                                          @RequestHeader(USER_ID_HEADER) Long userId) {
         return itemClient.getItem(itemId, userId);
     }
 
     @GetMapping
-    public ResponseEntity<Object> getItems(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public ResponseEntity<Object> getItems(@RequestHeader(USER_ID_HEADER) Long userId) {
         return itemClient.getItems(userId);
     }
 
@@ -54,7 +56,7 @@ public class ItemController {
     }
 
     @PostMapping("/{itemId}/comment")
-    public ResponseEntity<Object> addComment(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ResponseEntity<Object> addComment(@RequestHeader(USER_ID_HEADER) Long userId,
                                              @PathVariable Long itemId,
                                              @RequestBody @Valid CommentDto commentDto) {
         if (commentDto.getText() == null || commentDto.getText().trim().isEmpty()) {

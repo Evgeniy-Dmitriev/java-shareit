@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static ru.practicum.shareit.util.Constants.USER_ID_HEADER;
 
 @WebMvcTest(controllers = ItemController.class)
 class ItemControllerTest {
@@ -68,12 +69,10 @@ class ItemControllerTest {
 
     @Test
     void createItem_ShouldReturnCreatedItem() throws Exception {
-        // Given
         when(itemService.createItem(eq(1L), any(ItemDto.class))).thenReturn(itemDto);
 
-        // When & Then
         mockMvc.perform(post("/items")
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USER_ID_HEADER, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(itemDto)))
                 .andExpect(status().isOk())
@@ -87,7 +86,6 @@ class ItemControllerTest {
 
     @Test
     void createItem_WithoutUserHeader_ShouldReturnBadRequest() throws Exception {
-        // When & Then
         mockMvc.perform(post("/items")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(itemDto)))
@@ -98,13 +96,11 @@ class ItemControllerTest {
 
     @Test
     void createItem_WithNonExistentUser_ShouldReturnNotFound() throws Exception {
-        // Given
         when(itemService.createItem(eq(999L), any(ItemDto.class)))
                 .thenThrow(new UserNotFoundException("Собственник не найден"));
 
-        // When & Then
         mockMvc.perform(post("/items")
-                        .header("X-Sharer-User-Id", 999L)
+                        .header(USER_ID_HEADER, 999L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(itemDto)))
                 .andExpect(status().isNotFound());
@@ -114,7 +110,6 @@ class ItemControllerTest {
 
     @Test
     void updateItem_ShouldReturnUpdatedItem() throws Exception {
-        // Given
         ItemDto updateDto = new ItemDto();
         updateDto.setName("Updated Item");
         updateDto.setDescription("Updated Description");
@@ -128,9 +123,8 @@ class ItemControllerTest {
 
         when(itemService.updateItem(eq(1L), eq(1L), any(ItemDto.class))).thenReturn(updatedItem);
 
-        // When & Then
         mockMvc.perform(patch("/items/1")
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USER_ID_HEADER, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateDto)))
                 .andExpect(status().isOk())
@@ -144,13 +138,11 @@ class ItemControllerTest {
 
     @Test
     void updateItem_WithAccessDenied_ShouldReturnForbidden() throws Exception {
-        // Given
         when(itemService.updateItem(eq(2L), eq(1L), any(ItemDto.class)))
                 .thenThrow(new AccessDeniedException("Только собственник может редактировать предмет"));
 
-        // When & Then
         mockMvc.perform(patch("/items/1")
-                        .header("X-Sharer-User-Id", 2L)
+                        .header(USER_ID_HEADER, 2L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(itemDto)))
                 .andExpect(status().isForbidden());
@@ -160,13 +152,11 @@ class ItemControllerTest {
 
     @Test
     void updateItem_WithNonExistentItem_ShouldReturnNotFound() throws Exception {
-        // Given
         when(itemService.updateItem(eq(1L), eq(999L), any(ItemDto.class)))
                 .thenThrow(new ItemNotFoundException("Предмет не найден"));
 
-        // When & Then
         mockMvc.perform(patch("/items/999")
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USER_ID_HEADER, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(itemDto)))
                 .andExpect(status().isNotFound());
@@ -176,12 +166,10 @@ class ItemControllerTest {
 
     @Test
     void getItem_ShouldReturnItem() throws Exception {
-        // Given
         when(itemService.getItemById(1L)).thenReturn(itemWithBookingDto);
 
-        // When & Then
         mockMvc.perform(get("/items/1")
-                        .header("X-Sharer-User-Id", 1L))
+                        .header(USER_ID_HEADER, 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.name", is("Test Item")))
@@ -194,12 +182,10 @@ class ItemControllerTest {
 
     @Test
     void getItem_WithNonExistentItem_ShouldReturnNotFound() throws Exception {
-        // Given
         when(itemService.getItemById(999L)).thenThrow(new ItemNotFoundException("Предмет не найден"));
 
-        // When & Then
         mockMvc.perform(get("/items/999")
-                        .header("X-Sharer-User-Id", 1L))
+                        .header(USER_ID_HEADER, 1L))
                 .andExpect(status().isNotFound());
 
         verify(itemService).getItemById(999L);
@@ -207,13 +193,11 @@ class ItemControllerTest {
 
     @Test
     void getItems_ShouldReturnOwnerItems() throws Exception {
-        // Given
         List<ItemWithBookingDto> items = Arrays.asList(itemWithBookingDto);
         when(itemService.getItemsByOwner(1L)).thenReturn(items);
 
-        // When & Then
         mockMvc.perform(get("/items")
-                        .header("X-Sharer-User-Id", 1L))
+                        .header(USER_ID_HEADER, 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id", is(1)))
@@ -224,13 +208,11 @@ class ItemControllerTest {
 
     @Test
     void getItems_WithNonExistentUser_ShouldReturnNotFound() throws Exception {
-        // Given
         when(itemService.getItemsByOwner(999L))
                 .thenThrow(new UserNotFoundException("Собственник не найден"));
 
-        // When & Then
         mockMvc.perform(get("/items")
-                        .header("X-Sharer-User-Id", 999L))
+                        .header(USER_ID_HEADER, 999L))
                 .andExpect(status().isNotFound());
 
         verify(itemService).getItemsByOwner(999L);
@@ -238,11 +220,9 @@ class ItemControllerTest {
 
     @Test
     void searchItems_ShouldReturnMatchingItems() throws Exception {
-        // Given
         List<ItemDto> items = Arrays.asList(itemDto);
         when(itemService.searchItems("test")).thenReturn(items);
 
-        // When & Then
         mockMvc.perform(get("/items/search")
                         .param("text", "test"))
                 .andExpect(status().isOk())
@@ -255,10 +235,8 @@ class ItemControllerTest {
 
     @Test
     void searchItems_WithEmptyText_ShouldReturnEmptyList() throws Exception {
-        // Given
         when(itemService.searchItems("")).thenReturn(Collections.emptyList());
 
-        // When & Then
         mockMvc.perform(get("/items/search")
                         .param("text", ""))
                 .andExpect(status().isOk())
@@ -269,15 +247,13 @@ class ItemControllerTest {
 
     @Test
     void addComment_ShouldReturnCreatedComment() throws Exception {
-        // Given
         CommentDto inputComment = new CommentDto();
         inputComment.setText("Great item!");
 
         when(itemService.addComment(eq(1L), eq(1L), any(CommentDto.class))).thenReturn(commentDto);
 
-        // When & Then
         mockMvc.perform(post("/items/1/comment")
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USER_ID_HEADER, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(inputComment)))
                 .andExpect(status().isOk())
@@ -291,16 +267,14 @@ class ItemControllerTest {
 
     @Test
     void addComment_WithNonExistentItem_ShouldReturnNotFound() throws Exception {
-        // Given
         CommentDto inputComment = new CommentDto();
         inputComment.setText("Great item!");
 
         when(itemService.addComment(eq(1L), eq(999L), any(CommentDto.class)))
                 .thenThrow(new ItemNotFoundException("Предмет не найден"));
 
-        // When & Then
         mockMvc.perform(post("/items/999/comment")
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USER_ID_HEADER, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(inputComment)))
                 .andExpect(status().isNotFound());
@@ -310,16 +284,14 @@ class ItemControllerTest {
 
     @Test
     void addComment_WithNonExistentUser_ShouldReturnNotFound() throws Exception {
-        // Given
         CommentDto inputComment = new CommentDto();
         inputComment.setText("Great item!");
 
         when(itemService.addComment(eq(999L), eq(1L), any(CommentDto.class)))
                 .thenThrow(new UserNotFoundException("Пользователь не найден"));
 
-        // When & Then
         mockMvc.perform(post("/items/1/comment")
-                        .header("X-Sharer-User-Id", 999L)
+                        .header(USER_ID_HEADER, 999L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(inputComment)))
                 .andExpect(status().isNotFound());
