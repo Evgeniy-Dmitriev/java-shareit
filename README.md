@@ -77,3 +77,162 @@
 ```bash
 git clone <your-repository-url>
 cd shareit
+```
+
+2. Соберите и запустите приложение:
+```bash
+docker-compose up --build
+```
+
+Приложение будет доступно по адресам:
+
+- **Gateway**: http://localhost:8080
+- **Server**: http://localhost:9090
+- **PostgreSQL**: localhost:6541
+
+### Способ 2: Локальный запуск
+
+Настройте базу данных PostgreSQL:
+
+```sql
+CREATE DATABASE shareit;
+CREATE USER shareit WITH PASSWORD 'shareit';
+GRANT ALL PRIVILEGES ON DATABASE shareit TO shareit;
+```
+
+Запустите сервер:
+
+```bash
+cd server
+mvn spring-boot:run -Dspring.profiles.active=dev
+```
+
+Запустите gateway:
+
+```bash
+cd gateway  
+mvn spring-boot:run
+```
+
+### Способ 3: Запуск тестов
+
+```bash
+# Все тесты
+mvn test
+
+# С проверкой покрытия
+mvn test jacoco:report
+
+# Со статическим анализом
+mvn checkstyle:check spotbugs:check
+```
+
+## 📊 API Endpoints
+
+### Пользователи
+- `POST /users` - создание пользователя
+- `PATCH /users/{userId}` - обновление пользователя
+- `GET /users/{userId}` - получение пользователя
+- `GET /users` - получение всех пользователей
+- `DELETE /users/{userId}` - удаление пользователя
+
+### Предметы
+- `POST /items` - создание предмета
+- `PATCH /items/{itemId}` - обновление предмета
+- `GET /items/{itemId}` - получение предмета
+- `GET /items` - получение всех предметов пользователя
+- `GET /items/search?text={query}` - поиск предметов
+- `POST /items/{itemId}/comment` - добавление комментария
+
+### Бронирования
+- `POST /bookings` - создание бронирования
+- `PATCH /bookings/{bookingId}?approved={true/false}` - подтверждение бронирования
+- `GET /bookings/{bookingId}` - получение бронирования
+- `GET /bookings` - получение бронирований пользователя
+- `GET /bookings/owner` - получение бронирований владельца
+
+### Запросы
+- `POST /requests` - создание запроса
+- `GET /requests` - получение запросов пользователя
+- `GET /requests/all` - получение всех запросов
+- `GET /requests/{requestId}` - получение запроса по ID
+
+## 🗄 База данных
+
+### Основные сущности:
+- `users` - информация о пользователях
+- `items` - предметы для аренды
+- `bookings` - бронирования предметов
+- `comments` - комментарии к предметам
+- `item_requests` - запросы на предметы
+
+### Миграции:
+База данных инициализируется автоматически через Hibernate DDL auto-create.
+
+## 🧪 Тестирование
+
+Проект включает comprehensive тестирование:
+
+- **Unit tests** - тестирование отдельных компонентов
+- **Integration tests** - тестирование взаимодействия компонентов
+- **Repository tests** - тестирование работы с БД
+
+Запуск тестов с покрытием:
+
+```bash
+mvn test jacoco:report
+```
+
+Отчет о покрытии будет доступен в: `target/site/jacoco/index.html`
+
+## 🔧 Конфигурация
+
+### Основные настройки (application.properties):
+
+```properties
+# Database
+spring.datasource.url=jdbc:postgresql://localhost:5432/shareit
+spring.datasource.username=shareit
+spring.datasource.password=shareit
+
+# JPA
+spring.jpa.hibernate.ddl-auto=create-drop
+spring.jpa.show-sql=true
+
+# Server
+server.port=9090
+```
+
+### Docker окружение:
+
+```yaml
+environment:
+  - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/shareit
+  - SPRING_DATASOURCE_USERNAME=shareit
+  - SPRING_DATASOURCE_PASSWORD=shareit
+  - SHAREIT_SERVER_URL=http://server:9090
+```
+
+## 📈 Планы по доработке
+
+### Краткосрочные улучшения:
+1. **Добавить аутентификацию** - реализовать JWT-based аутентификацию вместо header-based
+2. **Улучшить валидацию** - добавить кастомные валидаторы для сложных бизнес-правил
+3. **Оптимизировать запросы** - добавить пагинацию для всех списковых endpoint'ов
+4. **Улучшить обработку ошибок** - создать единый формат ошибок и глобальный exception handler
+
+### Среднесрочные улучшения:
+1. **Добавить кэширование** - реализовать Redis кэширование для часто запрашиваемых данных
+2. **Реализовать уведомления** - добавить email/SMS уведомления о бронированиях
+3. **Добавить платежную систему** - интеграция с платежными шлюзами для монетизации
+4. **Создать административную панель** - веб-интерфейс для управления приложением
+
+### Долгосрочные улучшения:
+1. **Микросервисная архитектура** - разделение на отдельные сервисы (users, items, bookings)
+2. **Добавить полнотекстовый поиск** - интеграция с Elasticsearch для улучшенного поиска
+3. **Реализовать рекомендательную систему** - ML-based рекомендации предметов
+4. **Мобильное приложение** - разработка iOS/Android клиентов
+
+## 👥 Разработчики
+
+Проект разработан Евгением Дмитриевым как учебный проект в рамках курса Java-разработки.
